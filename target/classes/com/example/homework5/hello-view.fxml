@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.text.Font?>
+<GridPane fx:controller="com.example.homework5.HelloController"
+          xmlns:fx="http://javafx.com/fxml" alignment="BOTTOM_CENTER" hgap="2" vgap="2">
+
+    <padding>
+        <Insets bottom="3" left="3" right="3"/>
+    </padding>
+    <rowConstraints>
+        <RowConstraints prefHeight="50"/>
+        <RowConstraints prefHeight="40"/>
+        <RowConstraints prefHeight="40"/>
+        <RowConstraints prefHeight="40"/>
+        <RowConstraints prefHeight="40"/>
+        <RowConstraints prefHeight="40"/>
+        <RowConstraints prefHeight="40"/>
+        <RowConstraints prefHeight="40"/>
+    </rowConstraints>
+    <columnConstraints>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+        <ColumnConstraints percentWidth="8.3"/>
+    </columnConstraints>
+
+    <Label text="0"
+           prefHeight="Infinity"
+           prefWidth="Infinity"
+           textAlignment="RIGHT"
+           alignment="BASELINE_RIGHT"
+           GridPane.rowIndex="0"
+           GridPane.columnIndex="0"
+           GridPane.columnSpan="12" >
+        <font>
+            <Font name="Arial bold" size="40" />
+        </font>
+    </Label>
+
+
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="MC" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2" />
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="MR" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.columnSpan="2" />
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="M+" GridPane.rowIndex="1" GridPane.columnIndex="4" GridPane.columnSpan="2" />
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="M-" GridPane.rowIndex="1" GridPane.columnIndex="6" GridPane.columnSpan="2" />
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="MS" GridPane.rowIndex="1" GridPane.columnIndex="8" GridPane.columnSpan="2" />
+    <Label maxHeight="Infinity" maxWidth="Infinity" text="0.0" GridPane.rowIndex="1" GridPane.columnIndex="10" GridPane.columnSpan="2" textAlignment="CENTER" alignment="CENTER" />
+
+
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="PROG" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="3" />
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="RCL" GridPane.rowIndex="2" GridPane.columnIndex="3" GridPane.columnSpan="3"/>
+    <Button onAction="#onRedo" maxHeight="Infinity" maxWidth="Infinity" text="Redo" GridPane.rowIndex="2" GridPane.columnIndex="6" GridPane.columnSpan="3" />
+    <Button onAction="#onUndo" maxHeight="Infinity" maxWidth="Infinity" text="Undo" GridPane.rowIndex="2" GridPane.columnIndex="9" GridPane.columnSpan="3" />
+
+
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="1/x" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="x²" GridPane.rowIndex="3" GridPane.columnIndex="3" GridPane.columnSpan="3"/>
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="√" GridPane.rowIndex="3" GridPane.columnIndex="6" GridPane.columnSpan="3"/>
+    <Button onAction="#onDivide" maxHeight="Infinity" maxWidth="Infinity" text="÷" GridPane.rowIndex="3" GridPane.columnIndex="9" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+
+
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="7" GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="8" GridPane.rowIndex="4" GridPane.columnIndex="3" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="9" GridPane.rowIndex="4" GridPane.columnIndex="6" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onMultiply" maxHeight="Infinity" maxWidth="Infinity" text="×" GridPane.rowIndex="4" GridPane.columnIndex="9" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+
+
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="4" GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="5" GridPane.rowIndex="5" GridPane.columnIndex="3" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="6" GridPane.rowIndex="5" GridPane.columnIndex="6" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onSubtract" maxHeight="Infinity" maxWidth="Infinity" text="-" GridPane.rowIndex="5" GridPane.columnIndex="9" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+
+
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="1" GridPane.rowIndex="6" GridPane.columnIndex="0" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="2" GridPane.rowIndex="6" GridPane.columnIndex="3" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="3" GridPane.rowIndex="6" GridPane.columnIndex="6" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onAdd" maxHeight="Infinity" maxWidth="Infinity" text="+" GridPane.rowIndex="6" GridPane.columnIndex="9" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+
+
+    <Button maxHeight="Infinity" maxWidth="Infinity" text="+/-" GridPane.rowIndex="7" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+    <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="0" GridPane.rowIndex="7" GridPane.columnIndex="3" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onSetDecimalSeparator" maxHeight="Infinity" maxWidth="Infinity" text="." GridPane.rowIndex="7" GridPane.columnIndex="6" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+    <Button onAction="#onEquals" maxHeight="Infinity" maxWidth="Infinity" text="=" GridPane.rowIndex="7" GridPane.columnIndex="9" GridPane.columnSpan="3"><style>-fx-text-fill: green;</style></Button>
+</GridPane>
