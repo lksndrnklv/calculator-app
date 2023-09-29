@@ -9,4 +9,12 @@ public class MultiplicationCommand extends Command {
         this.firstOperand = this.firstOperand.multiply(secondOperand);
         this.secondOperand = null;
     }
+
+    @Override
+    public String getDisplayLabel() {
+        if (this.memento == null) {
+            return this.firstOperand.stripTrailingZeros().toPlainString().concat("×");
+        }
+        return this.firstOperand.stripTrailingZeros().toPlainString();
+    }
 }

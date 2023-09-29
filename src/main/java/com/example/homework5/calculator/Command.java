@@ -9,6 +9,7 @@ public abstract class Command {
     protected BigDecimal secondOperand;
     protected Memento memento;
     public abstract void execute();
+    public abstract String getDisplayLabel();
 
     public void unexecute() {
         Pair<BigDecimal, BigDecimal> operands = memento.getState();

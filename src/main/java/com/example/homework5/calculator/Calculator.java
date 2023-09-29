@@ -8,7 +8,7 @@ public class Calculator {
     private int undoRedoPointer = -1;
     private final Stack<Command> commandStack = new Stack<>();
 
-    private Command currentCommand = new AdditionCommand();
+    private Command currentCommand = null;
 
     private String operandBuilder = "";
 
@@ -17,11 +17,13 @@ public class Calculator {
     }
 
     public void setNextOperation(Command command) {
-        if (this.commandStack.isEmpty() && !this.operandBuilder.isEmpty()) {
+        if (this.undoRedoPointer < 0 && !this.operandBuilder.isEmpty()) {
             command.setFirstOperand(new BigDecimal(this.operandBuilder));
             this.operandBuilder = "";
+        } else if (this.undoRedoPointer < 0) {
+            command.setFirstOperand(this.commandStack.get(0).getFirstOperand());
         } else if (!this.commandStack.isEmpty()) {
-            command.setFirstOperand(this.currentCommand.firstOperand);
+            command.setFirstOperand(this.commandStack.get(this.undoRedoPointer).firstOperand);
         }
         this.currentCommand = command;
     }
@@ -34,8 +36,6 @@ public class Calculator {
         this.currentCommand.execute();
         this.commandStack.push(this.currentCommand);
         this.undoRedoPointer++;
-
-        System.out.println(this.commandStack.peek().getFirstOperand());
     }
 
     public void undo() {
@@ -45,7 +45,6 @@ public class Calculator {
         this.currentCommand = this.commandStack.get(this.undoRedoPointer);
         this.currentCommand.unexecute();
         this.undoRedoPointer--;
-        System.out.println(this.commandStack.get(this.undoRedoPointer + 1).getFirstOperand());
     }
 
     public void redo() {
@@ -55,7 +54,6 @@ public class Calculator {
         this.undoRedoPointer++;
         this.currentCommand = this.commandStack.get(this.undoRedoPointer);
         this.currentCommand.execute();
-        System.out.println(this.commandStack.get(this.undoRedoPointer).getFirstOperand());
     }
 
     public void setDecimalSeparator() {
@@ -71,5 +69,12 @@ public class Calculator {
         if (this.commandStack.size() > undoRedoPointer + 1) {
             this.commandStack.subList(undoRedoPointer + 1, this.commandStack.size()).clear();
         }
+    }
+
+    public String getDisplayLabel() {
+        if (this.currentCommand == null) {
+            return this.operandBuilder;
+        }
+        return this.currentCommand.getDisplayLabel().concat(this.operandBuilder);
     }
 }

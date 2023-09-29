@@ -38,7 +38,8 @@
         <ColumnConstraints percentWidth="8.3"/>
     </columnConstraints>
 
-    <Label text="0"
+    <Label fx:id="label"
+           text="0"
            prefHeight="Infinity"
            prefWidth="Infinity"
            textAlignment="RIGHT"

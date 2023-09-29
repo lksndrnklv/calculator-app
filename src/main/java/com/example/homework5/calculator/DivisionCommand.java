@@ -9,4 +9,12 @@ public class DivisionCommand extends Command {
         this.firstOperand = this.firstOperand.divide(secondOperand);
         this.secondOperand = null;
     }
+
+    @Override
+    public String getDisplayLabel() {
+        if (this.memento == null) {
+            return this.firstOperand.stripTrailingZeros().toPlainString().concat("÷");
+        }
+        return this.firstOperand.stripTrailingZeros().toPlainString();
+    }
 }
