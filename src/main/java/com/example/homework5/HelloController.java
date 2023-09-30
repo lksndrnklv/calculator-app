@@ -6,10 +6,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 
-public class HelloController implements Observer<String> {
+public class HelloController implements Observer<LabelState> {
 
     @FXML
-    private Label label;
+    private Label displayLabel;
+    @FXML
+    private Label memoryLabel;
     private final Calculator calculator = new Calculator();
 
     public HelloController() {
@@ -62,8 +64,14 @@ public class HelloController implements Observer<String> {
         this.calculator.redo();
     }
 
+    @FXML
+    public void onMemoryStore() {
+        this.calculator.onMemoryStore();
+    }
+
     @Override
-    public void update(String displayText) {
-        this.label.setText(displayText);
+    public void update(LabelState labelState) {
+        this.displayLabel.setText(labelState.getDisplayLabel());
+        this.memoryLabel.setText(labelState.getMemoryLabel());
     }
 }

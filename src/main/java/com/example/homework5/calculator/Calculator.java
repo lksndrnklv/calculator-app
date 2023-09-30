@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-public class Calculator implements Subject<String> {
+public class Calculator implements Subject<LabelState> {
 
     private int undoRedoPointer = -1;
     private final Stack<Command> commandStack = new Stack<>();
@@ -14,11 +14,13 @@ public class Calculator implements Subject<String> {
 
     private String operandBuilder = "";
 
-    private Set<Observer<String>> observers = new HashSet<>();
+    private Set<Observer<LabelState>> observers = new HashSet<>();
+
+    private BigDecimal storedMemory = new BigDecimal(0);
 
     public void addDigit(int digit) {
         this.operandBuilder = this.operandBuilder.concat(String.valueOf(digit));
-        this.updateDisplayText();
+        this.notifyObservers();
     }
 
     public void setNextOperation(Command command) {
@@ -36,7 +38,7 @@ public class Calculator implements Subject<String> {
             command.setFirstOperand(this.commandStack.get(this.undoRedoPointer).firstOperand);
         }
         this.currentCommand = command;
-        this.updateDisplayText();
+        this.notifyObservers();
     }
 
     public void terminateOperation() {
@@ -50,20 +52,20 @@ public class Calculator implements Subject<String> {
         this.currentCommand.execute();
         this.commandStack.push(this.currentCommand);
         this.undoRedoPointer++;
-        this.updateDisplayText();
+        this.notifyObservers();
     }
 
     public void undo() {
         this.operandBuilder = "";
         if (this.undoRedoPointer < 0) {
             this.currentCommand = null;
-            this.updateDisplayText();
+            this.notifyObservers();
             return;
         }
         this.currentCommand = this.commandStack.get(this.undoRedoPointer);
         this.currentCommand.unexecute();
         this.undoRedoPointer--;
-        this.updateDisplayText();
+        this.notifyObservers();
     }
 
     public void redo() {
@@ -74,14 +76,14 @@ public class Calculator implements Subject<String> {
         this.undoRedoPointer++;
         this.currentCommand = this.commandStack.get(this.undoRedoPointer);
         this.currentCommand.execute();
-        this.updateDisplayText();
+        this.notifyObservers();
     }
 
     public void setDecimalSeparator() {
         if (!this.operandBuilder.contains(".")) {
             this.operandBuilder = this.operandBuilder.concat(".");
         }
-        this.updateDisplayText();
+        this.notifyObservers();
     }
 
     private void deleteElementsAfterPointer(int undoRedoPointer) {
@@ -93,26 +95,34 @@ public class Calculator implements Subject<String> {
         }
     }
 
-    private void updateDisplayText() {
-        if (this.currentCommand == null) {
-            this.notifyObservers(!this.operandBuilder.isBlank() ? this.operandBuilder : "0");
-            return;
-        }
-        this.notifyObservers(this.currentCommand.getDisplayLabel().concat(this.operandBuilder));
-    }
-
     @Override
-    public void subscribe(Observer<String> observer) {
+    public void subscribe(Observer<LabelState> observer) {
         this.observers.add(observer);
     }
 
     @Override
-    public void unsubscribe(Observer<String> observer) {
+    public void unsubscribe(Observer<LabelState> observer) {
         this.observers.remove(observer);
     }
 
     @Override
-    public void notifyObservers(String displayText) {
-        this.observers.forEach(observer -> observer.update(displayText));
+    public void notifyObservers() {
+        final String displayText;
+        if (this.currentCommand == null) {
+            displayText = !this.operandBuilder.isBlank() ? this.operandBuilder : "0";
+        } else {
+            displayText = this.currentCommand.getDisplayLabel().concat(this.operandBuilder);
+        }
+        this.observers.forEach(observer -> observer.update(new LabelState(displayText, this.storedMemory.stripTrailingZeros().toPlainString())));
+    }
+
+    public void onMemoryStore() {
+        if (this.undoRedoPointer >= 0) {
+            this.storedMemory = this.commandStack.get(this.undoRedoPointer).firstOperand;
+            this.notifyObservers();
+            return;
+        }
+        this.storedMemory = new BigDecimal(0);
+        this.notifyObservers();
     }
 }
