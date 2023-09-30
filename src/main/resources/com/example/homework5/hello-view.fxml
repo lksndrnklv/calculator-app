@@ -106,7 +106,7 @@
     <Button onAction="#onAdd" maxHeight="Infinity" maxWidth="Infinity" text="+" GridPane.rowIndex="7" GridPane.columnIndex="9" GridPane.columnSpan="3"/>
 
 
-    <Button maxHeight="Infinity" disable="true" maxWidth="Infinity" text="&lt;empty&gt;" GridPane.rowIndex="8" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
+    <Label maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="8" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
     <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="0" GridPane.rowIndex="8" GridPane.columnIndex="3" GridPane.columnSpan="3"/>
     <Button onAction="#onSetDecimalSeparator" maxHeight="Infinity" maxWidth="Infinity" text="." GridPane.rowIndex="8" GridPane.columnIndex="6" GridPane.columnSpan="3"/>
     <Button onAction="#onEquals" maxHeight="Infinity" maxWidth="Infinity" text="=" GridPane.rowIndex="8" GridPane.columnIndex="9" GridPane.columnSpan="3"/>
