@@ -17,14 +17,22 @@ public class Calculator implements Subject<LabelState> {
     private final Set<Observer<LabelState>> observers = new HashSet<>();
 
     private BigDecimal storedMemory = new BigDecimal(0);
+    private boolean isMemoryReadState = false;
 
     public void addDigit(int digit) {
+        if (this.operandBuilder.isBlank() && digit == 0) {
+            return;
+        }
         this.operandBuilder = this.operandBuilder.concat(String.valueOf(digit));
         this.notifyObservers();
     }
 
     public void setNextOperation(Command command) {
-        if (this.undoRedoPointer < 0 && this.currentCommand == null) {
+        if (this.isMemoryReadState) {
+            command.setFirstOperand(new BigDecimal(this.operandBuilder));
+            this.operandBuilder = "";
+            this.isMemoryReadState = false;
+        } else if (this.undoRedoPointer < 0 && this.currentCommand == null) {
             command.setFirstOperand(new BigDecimal(0));
             if (!this.operandBuilder.isBlank()) {
                 command.setFirstOperand(new BigDecimal(this.operandBuilder));
@@ -57,14 +65,18 @@ public class Calculator implements Subject<LabelState> {
 
     public void undo() {
         this.operandBuilder = "";
-        if (this.undoRedoPointer < 0) {
-            this.currentCommand = null;
+        if (this.isMemoryReadState) {
+            this.isMemoryReadState = false;
+            this.operandBuilder = "";
             this.notifyObservers();
             return;
+        } else if (this.undoRedoPointer < 0) {
+            this.currentCommand = null;
+        } else {
+            this.currentCommand = this.commandStack.get(this.undoRedoPointer);
+            this.currentCommand.unexecute();
+            this.undoRedoPointer--;
         }
-        this.currentCommand = this.commandStack.get(this.undoRedoPointer);
-        this.currentCommand.unexecute();
-        this.undoRedoPointer--;
         this.notifyObservers();
     }
 
@@ -108,7 +120,9 @@ public class Calculator implements Subject<LabelState> {
     @Override
     public void notifyObservers() {
         final String displayText;
-        if (this.currentCommand == null) {
+        if (this.isMemoryReadState) {
+            displayText = this.storedMemory.stripTrailingZeros().toPlainString();
+        } else if (this.currentCommand == null) {
             displayText = !this.operandBuilder.isBlank() ? this.operandBuilder : "0";
         } else {
             displayText = this.currentCommand.getDisplayLabel().concat(this.operandBuilder);
@@ -116,7 +130,7 @@ public class Calculator implements Subject<LabelState> {
         this.observers.forEach(observer -> observer.update(new LabelState(displayText, this.storedMemory.stripTrailingZeros().toPlainString())));
     }
 
-    public void onMemoryStore() {
+    public void memoryStore() {
         if (this.currentCommand != null) {
             this.storedMemory = this.currentCommand.firstOperand;
         } else if (!this.operandBuilder.isBlank()) {
@@ -127,22 +141,28 @@ public class Calculator implements Subject<LabelState> {
         this.notifyObservers();
     }
 
-    public void onMemoryAdd() {
+    public void memoryAdd() {
         if (this.currentCommand != null) {
             this.storedMemory = this.storedMemory.add(this.currentCommand.firstOperand);
             this.notifyObservers();
         }
     }
 
-    public void onMemorySubtract() {
-        if (this.undoRedoPointer >= 0) {
+    public void memorySubtract() {
+        if (this.currentCommand != null) {
             this.storedMemory = this.storedMemory.subtract(this.currentCommand.firstOperand);
             this.notifyObservers();
         }
     }
 
-    public void onMemoryClear() {
+    public void memoryClear() {
         this.storedMemory = new BigDecimal(0);
+        this.notifyObservers();
+    }
+
+    public void memoryRead() {
+        this.isMemoryReadState = true;
+        this.operandBuilder = this.storedMemory.stripTrailingZeros().toPlainString();
         this.notifyObservers();
     }
 }

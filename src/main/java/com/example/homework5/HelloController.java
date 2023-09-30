@@ -66,26 +66,27 @@ public class HelloController implements Observer<LabelState> {
 
     @FXML
     public void onMemoryStore() {
-        this.calculator.onMemoryStore();
+        this.calculator.memoryStore();
     }
 
     @FXML
     public void onMemoryAdd() {
-        this.calculator.onMemoryAdd();
+        this.calculator.memoryAdd();
     }
 
     @FXML
     public void onMemorySubtract() {
-        this.calculator.onMemorySubtract();
+        this.calculator.memorySubtract();
     }
 
     @FXML
     public void onMemoryClear() {
-        this.calculator.onMemoryClear();
+        this.calculator.memoryClear();
     }
 
     @FXML
     public void onMemoryRead() {
+        this.calculator.memoryRead();
     }
 
     @Override
