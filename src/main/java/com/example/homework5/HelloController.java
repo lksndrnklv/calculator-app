@@ -31,6 +31,7 @@ public class HelloController implements Observer<LabelState> {
     private void initialize() {
         ContextMenu contextMenu = new ContextMenu();
         this.openMenuButton.setContextMenu(contextMenu);
+        this.openMenuButton.setDisable(true);
     }
 
     @FXML
@@ -116,5 +117,6 @@ public class HelloController implements Observer<LabelState> {
         this.memoryLabel.setText(labelState.getMemoryText());
         this.openMenuButton.getContextMenu().getItems().clear();
         this.openMenuButton.getContextMenu().getItems().addAll(labelState.getExpressionHistory().stream().map(MenuItem::new).collect(Collectors.toList()));
+        this.openMenuButton.setDisable(this.openMenuButton.getContextMenu().getItems().isEmpty());
     }
 }
