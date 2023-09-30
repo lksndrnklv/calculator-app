@@ -14,7 +14,7 @@ public class Calculator implements Subject<LabelState> {
 
     private String operandBuilder = "";
 
-    private Set<Observer<LabelState>> observers = new HashSet<>();
+    private final Set<Observer<LabelState>> observers = new HashSet<>();
 
     private BigDecimal storedMemory = new BigDecimal(0);
 
@@ -117,12 +117,27 @@ public class Calculator implements Subject<LabelState> {
     }
 
     public void onMemoryStore() {
-        if (this.undoRedoPointer >= 0) {
-            this.storedMemory = this.commandStack.get(this.undoRedoPointer).firstOperand;
-            this.notifyObservers();
-            return;
+        if (this.currentCommand != null) {
+            this.storedMemory = this.currentCommand.firstOperand;
+        } else if (!this.operandBuilder.isBlank()) {
+            this.storedMemory = new BigDecimal(this.operandBuilder);
+        } else {
+            this.storedMemory = new BigDecimal(0);
         }
-        this.storedMemory = new BigDecimal(0);
         this.notifyObservers();
+    }
+
+    public void onMemoryAdd() {
+        if (this.currentCommand != null) {
+            this.storedMemory = this.storedMemory.add(this.currentCommand.firstOperand);
+            this.notifyObservers();
+        }
+    }
+
+    public void onMemorySubtract() {
+        if (this.undoRedoPointer >= 0) {
+            this.storedMemory = this.storedMemory.subtract(this.currentCommand.firstOperand);
+            this.notifyObservers();
+        }
     }
 }
