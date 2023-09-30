@@ -11,6 +11,7 @@ public class Calculator implements Subject<LabelState> {
 
     private int undoRedoPointer = -1;
     private final Stack<Expression> expressionStack = new Stack<>();
+    private final Stack<Expression> PROGExpressionStack = new Stack<>();
 
     private Expression currentExpression = null;
 
@@ -20,6 +21,7 @@ public class Calculator implements Subject<LabelState> {
 
     private BigDecimal storedMemory = new BigDecimal(0);
     private boolean isMemoryReadState = false;
+    private boolean isProgModeActive = false;
 
     public void addDigit(int digit) {
         if (this.expressionStack.contains(this.currentExpression)) {
@@ -178,5 +180,9 @@ public class Calculator implements Subject<LabelState> {
         this.isMemoryReadState = true;
         this.operandBuilder = this.storedMemory.stripTrailingZeros().toPlainString();
         this.notifyObservers();
+    }
+
+    public void setPROGMode(boolean isProgModeActive) {
+        this.isProgModeActive = isProgModeActive;
     }
 }

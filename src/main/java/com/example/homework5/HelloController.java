@@ -4,10 +4,7 @@ import com.example.homework5.calculator.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 
 import java.util.stream.Collectors;
 
@@ -21,6 +18,8 @@ public class HelloController implements Observer<LabelState> {
     private Label memoryLabel;
     @FXML
     private Button openMenuButton;
+    @FXML
+    private ToggleButton PROGModeBtn;
     private final Calculator calculator = new Calculator();
 
     public HelloController() {
@@ -108,6 +107,11 @@ public class HelloController implements Observer<LabelState> {
     @FXML
     public void onMemoryRead() {
         this.calculator.memoryRead();
+    }
+
+    @FXML
+    public void togglePROGMode() {
+        this.calculator.setPROGMode(this.PROGModeBtn.isSelected());
     }
 
     @Override
