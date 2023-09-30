@@ -9,7 +9,9 @@ import javafx.scene.control.Label;
 public class HelloController implements Observer<LabelState> {
 
     @FXML
-    private Label displayLabel;
+    private Label mainDisplayLabel;
+    @FXML
+    private Label secondaryDisplayLabel;
     @FXML
     private Label memoryLabel;
     private final Calculator calculator = new Calculator();
@@ -31,27 +33,27 @@ public class HelloController implements Observer<LabelState> {
 
     @FXML
     public void onAdd() {
-        this.calculator.setNextOperation(new AdditionCommand());
+        this.calculator.setNextOperation(new Expression(Operation.ADDITION));
     }
 
     @FXML
     public void onSubtract() {
-        this.calculator.setNextOperation(new SubtractionCommand());
+        this.calculator.setNextOperation(new Expression(Operation.SUBTRACTION));
     }
 
     @FXML
     public void onMultiply() {
-        this.calculator.setNextOperation(new MultiplicationCommand());
+        this.calculator.setNextOperation(new Expression(Operation.MULTIPLICATION));
     }
 
     @FXML
     public void onDivide() {
-        this.calculator.setNextOperation(new DivisionCommand());
+        this.calculator.setNextOperation(new Expression(Operation.DIVISION));
     }
 
     @FXML
     public void onEquals() {
-        this.calculator.terminateOperation();
+        this.calculator.terminateExpression();
     }
 
     @FXML
@@ -91,7 +93,8 @@ public class HelloController implements Observer<LabelState> {
 
     @Override
     public void update(LabelState labelState) {
-        this.displayLabel.setText(labelState.getDisplayLabel());
-        this.memoryLabel.setText(labelState.getMemoryLabel());
+        this.mainDisplayLabel.setText(labelState.getMainDisplayText());
+        this.secondaryDisplayLabel.setText(labelState.getSecondaryDisplayText());
+        this.memoryLabel.setText(labelState.getMemoryText());
     }
 }

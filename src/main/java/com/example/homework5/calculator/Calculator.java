@@ -8,9 +8,9 @@ import java.util.Stack;
 public class Calculator implements Subject<LabelState> {
 
     private int undoRedoPointer = -1;
-    private final Stack<Command> commandStack = new Stack<>();
+    private final Stack<Expression> expressionStack = new Stack<>();
 
-    private Command currentCommand = null;
+    private Expression currentExpression = null;
 
     private String operandBuilder = "";
 
@@ -20,45 +20,47 @@ public class Calculator implements Subject<LabelState> {
     private boolean isMemoryReadState = false;
 
     public void addDigit(int digit) {
-        if (this.operandBuilder.isBlank() && digit == 0) {
+        if (this.expressionStack.contains(this.currentExpression)) {
+            return;
+        }
+        if (this.operandBuilder.length() == 1 && this.operandBuilder.equals("0")) {
             return;
         }
         this.operandBuilder = this.operandBuilder.concat(String.valueOf(digit));
         this.notifyObservers();
     }
 
-    public void setNextOperation(Command command) {
+    public void setNextOperation(Expression expression) {
         if (this.isMemoryReadState) {
-            command.setFirstOperand(new BigDecimal(this.operandBuilder));
+            expression.setFirstOperand(new BigDecimal(this.operandBuilder));
             this.operandBuilder = "";
             this.isMemoryReadState = false;
-        } else if (this.undoRedoPointer < 0 && this.currentCommand == null) {
-            command.setFirstOperand(new BigDecimal(0));
+        } else if (this.undoRedoPointer < 0 && this.currentExpression == null) {
+            expression.setFirstOperand(new BigDecimal(0));
             if (!this.operandBuilder.isBlank()) {
-                command.setFirstOperand(new BigDecimal(this.operandBuilder));
+                expression.setFirstOperand(new BigDecimal(this.operandBuilder));
             }
             this.operandBuilder = "";
-        } else if (this.currentCommand != null
-                && !this.commandStack.contains(this.currentCommand)) {
-            this.terminateOperation();
-            this.setNextOperation(command);
-        } else if (!this.commandStack.isEmpty() && this.undoRedoPointer >= 0) {
-            command.setFirstOperand(this.commandStack.get(this.undoRedoPointer).firstOperand);
+        } else if (this.currentExpression != null
+                && !this.expressionStack.contains(this.currentExpression)) {
+            this.terminateExpression();
+            this.setNextOperation(expression);
+        } else if (!this.expressionStack.isEmpty() && this.undoRedoPointer >= 0) {
+            expression.setFirstOperand(this.expressionStack.get(this.undoRedoPointer).evaluateExpression());
         }
-        this.currentCommand = command;
+        this.currentExpression = expression;
         this.notifyObservers();
     }
 
-    public void terminateOperation() {
+    public void terminateExpression() {
         if (this.operandBuilder.isBlank()) {
             return;
         }
-        this.currentCommand.setSecondOperand(new BigDecimal(this.operandBuilder));
+        this.currentExpression.setSecondOperand(new BigDecimal(this.operandBuilder));
         this.operandBuilder = "";
 
         deleteElementsAfterPointer(this.undoRedoPointer);
-        this.currentCommand.execute();
-        this.commandStack.push(this.currentCommand);
+        this.expressionStack.push(this.currentExpression);
         this.undoRedoPointer++;
         this.notifyObservers();
     }
@@ -68,26 +70,23 @@ public class Calculator implements Subject<LabelState> {
         if (this.isMemoryReadState) {
             this.isMemoryReadState = false;
             this.operandBuilder = "";
-            this.notifyObservers();
-            return;
-        } else if (this.undoRedoPointer < 0) {
-            this.currentCommand = null;
+        } else if (this.undoRedoPointer <= 0) {
+            this.currentExpression = null;
+            this.undoRedoPointer = -1;
         } else {
-            this.currentCommand = this.commandStack.get(this.undoRedoPointer);
-            this.currentCommand.unexecute();
             this.undoRedoPointer--;
+            this.currentExpression = this.expressionStack.get(this.undoRedoPointer);
         }
         this.notifyObservers();
     }
 
     public void redo() {
         this.operandBuilder = "";
-        if (this.undoRedoPointer == this.commandStack.size() - 1) {
+        if (this.undoRedoPointer == this.expressionStack.size() - 1) {
             return;
         }
         this.undoRedoPointer++;
-        this.currentCommand = this.commandStack.get(this.undoRedoPointer);
-        this.currentCommand.execute();
+        this.currentExpression = this.expressionStack.get(this.undoRedoPointer);
         this.notifyObservers();
     }
 
@@ -99,11 +98,11 @@ public class Calculator implements Subject<LabelState> {
     }
 
     private void deleteElementsAfterPointer(int undoRedoPointer) {
-        if (this.commandStack.isEmpty()) {
+        if (this.expressionStack.isEmpty()) {
             return;
         }
-        if (this.commandStack.size() > undoRedoPointer + 1) {
-            this.commandStack.subList(undoRedoPointer + 1, this.commandStack.size()).clear();
+        if (this.expressionStack.size() > undoRedoPointer + 1) {
+            this.expressionStack.subList(undoRedoPointer + 1, this.expressionStack.size()).clear();
         }
     }
 
@@ -119,20 +118,26 @@ public class Calculator implements Subject<LabelState> {
 
     @Override
     public void notifyObservers() {
-        final String displayText;
+        final String mainDisplayText;
         if (this.isMemoryReadState) {
-            displayText = this.storedMemory.stripTrailingZeros().toPlainString();
-        } else if (this.currentCommand == null) {
-            displayText = !this.operandBuilder.isBlank() ? this.operandBuilder : "0";
+            mainDisplayText = this.storedMemory.stripTrailingZeros().toPlainString();
+        } else if (this.currentExpression != null) {
+            mainDisplayText = this.currentExpression.getMainDisplayText().concat(this.operandBuilder);
         } else {
-            displayText = this.currentCommand.getDisplayLabel().concat(this.operandBuilder);
+            mainDisplayText = !this.operandBuilder.isBlank() ? this.operandBuilder : "0";
         }
-        this.observers.forEach(observer -> observer.update(new LabelState(displayText, this.storedMemory.stripTrailingZeros().toPlainString())));
+        final String secondaryDisplayText;
+        if (this.undoRedoPointer >= 0) {
+            secondaryDisplayText = this.expressionStack.get(this.undoRedoPointer).getSecondaryDisplayText();
+        } else {
+            secondaryDisplayText = "";
+        }
+        this.observers.forEach(observer -> observer.update(new LabelState(mainDisplayText, secondaryDisplayText, this.storedMemory.stripTrailingZeros().toPlainString())));
     }
 
     public void memoryStore() {
-        if (this.currentCommand != null) {
-            this.storedMemory = this.currentCommand.firstOperand;
+        if (this.currentExpression != null) {
+            this.storedMemory = this.currentExpression.evaluateExpression();
         } else if (!this.operandBuilder.isBlank()) {
             this.storedMemory = new BigDecimal(this.operandBuilder);
         } else {
@@ -142,17 +147,21 @@ public class Calculator implements Subject<LabelState> {
     }
 
     public void memoryAdd() {
-        if (this.currentCommand != null) {
-            this.storedMemory = this.storedMemory.add(this.currentCommand.firstOperand);
-            this.notifyObservers();
+        if (this.currentExpression != null) {
+            this.storedMemory = this.storedMemory.add(this.currentExpression.evaluateExpression());
+        } else if (!this.operandBuilder.isBlank()) {
+            this.storedMemory = this.storedMemory.add(new BigDecimal(this.operandBuilder));
         }
+        this.notifyObservers();
     }
 
     public void memorySubtract() {
-        if (this.currentCommand != null) {
-            this.storedMemory = this.storedMemory.subtract(this.currentCommand.firstOperand);
-            this.notifyObservers();
+        if (this.currentExpression != null) {
+            this.storedMemory = this.storedMemory.subtract(this.currentExpression.evaluateExpression());
+        } else if (!this.operandBuilder.isBlank()) {
+            this.storedMemory = this.storedMemory.subtract(new BigDecimal(this.operandBuilder));
         }
+        this.notifyObservers();
     }
 
     public void memoryClear() {

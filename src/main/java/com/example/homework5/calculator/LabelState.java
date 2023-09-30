@@ -1,20 +1,27 @@
 package com.example.homework5.calculator;
 
 public class LabelState {
-    private String displayLabel;
+    private String mainDisplayText;
 
-    private String memoryLabel;
+    private String secondaryDisplayText;
 
-    public LabelState(String displayLabel, String memoryLabel) {
-        this.displayLabel = displayLabel;
-        this.memoryLabel = memoryLabel;
+    private String memoryText;
+
+    public LabelState(String mainDisplayText, String secondaryDisplayText, String memoryText) {
+        this.mainDisplayText = mainDisplayText;
+        this.secondaryDisplayText = secondaryDisplayText;
+        this.memoryText = memoryText;
     }
 
-    public String getDisplayLabel() {
-        return displayLabel;
+    public String getMainDisplayText() {
+        return mainDisplayText;
     }
 
-    public String getMemoryLabel() {
-        return memoryLabel;
+    public String getSecondaryDisplayText() {
+        return secondaryDisplayText;
+    }
+
+    public String getMemoryText() {
+        return memoryText;
     }
 }
