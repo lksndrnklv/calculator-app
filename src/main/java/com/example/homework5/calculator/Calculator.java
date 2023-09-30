@@ -93,6 +93,8 @@ public class Calculator implements Subject<LabelState> {
     public void setDecimalSeparator() {
         if (!this.operandBuilder.contains(".")) {
             this.operandBuilder = this.operandBuilder.concat(".");
+        } else if(this.operandBuilder.isBlank()) {
+            this.operandBuilder = this.operandBuilder.concat("0.");
         }
         this.notifyObservers();
     }

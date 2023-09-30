@@ -109,5 +109,10 @@
     <Label maxHeight="Infinity" maxWidth="Infinity" GridPane.rowIndex="8" GridPane.columnIndex="0" GridPane.columnSpan="3"/>
     <Button onAction="#onAddDigit" maxHeight="Infinity" maxWidth="Infinity" text="0" GridPane.rowIndex="8" GridPane.columnIndex="3" GridPane.columnSpan="3"/>
     <Button onAction="#onSetDecimalSeparator" maxHeight="Infinity" maxWidth="Infinity" text="." GridPane.rowIndex="8" GridPane.columnIndex="6" GridPane.columnSpan="3"/>
-    <Button onAction="#onEquals" maxHeight="Infinity" maxWidth="Infinity" text="=" GridPane.rowIndex="8" GridPane.columnIndex="9" GridPane.columnSpan="3"/>
+    <Button onAction="#onEquals" maxHeight="Infinity" maxWidth="Infinity" text="=" GridPane.rowIndex="8" GridPane.columnIndex="9" GridPane.columnSpan="3">
+        <style>
+            -fx-text-fill: white;
+            -fx-background-color: #005A9E;
+        </style>
+    </Button>
 </GridPane>
