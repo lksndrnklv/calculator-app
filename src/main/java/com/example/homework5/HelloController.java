@@ -79,6 +79,11 @@ public class HelloController implements Observer<LabelState> {
         this.calculator.onMemorySubtract();
     }
 
+    @FXML
+    public void onMemoryReset() {
+        this.calculator.onMemoryReset();
+    }
+
     @Override
     public void update(LabelState labelState) {
         this.displayLabel.setText(labelState.getDisplayLabel());

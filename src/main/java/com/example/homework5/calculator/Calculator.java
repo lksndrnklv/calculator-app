@@ -140,4 +140,9 @@ public class Calculator implements Subject<LabelState> {
             this.notifyObservers();
         }
     }
+
+    public void onMemoryReset() {
+        this.storedMemory = new BigDecimal(0);
+        this.notifyObservers();
+    }
 }
