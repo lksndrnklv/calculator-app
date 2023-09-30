@@ -57,6 +57,7 @@ public class Calculator implements Subject<String> {
         this.operandBuilder = "";
         if (this.undoRedoPointer < 0) {
             this.currentCommand = null;
+            this.updateDisplayText();
             return;
         }
         this.currentCommand = this.commandStack.get(this.undoRedoPointer);
