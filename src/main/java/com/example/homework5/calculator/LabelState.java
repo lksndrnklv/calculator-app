@@ -1,5 +1,7 @@
 package com.example.homework5.calculator;
 
+import java.util.List;
+
 public class LabelState {
     private String mainDisplayText;
 
@@ -7,10 +9,13 @@ public class LabelState {
 
     private String memoryText;
 
-    public LabelState(String mainDisplayText, String secondaryDisplayText, String memoryText) {
+    private List<String> expressionHistory;
+
+    public LabelState(String mainDisplayText, String secondaryDisplayText, String memoryText, List<String> expressionHistory) {
         this.mainDisplayText = mainDisplayText;
         this.secondaryDisplayText = secondaryDisplayText;
         this.memoryText = memoryText;
+        this.expressionHistory = expressionHistory;
     }
 
     public String getMainDisplayText() {
@@ -23,5 +28,9 @@ public class LabelState {
 
     public String getMemoryText() {
         return memoryText;
+    }
+
+    public List<String> getExpressionHistory() {
+        return expressionHistory;
     }
 }

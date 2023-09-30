@@ -3,8 +3,13 @@ package com.example.homework5;
 import com.example.homework5.calculator.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Side;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+
+import java.util.stream.Collectors;
 
 public class HelloController implements Observer<LabelState> {
 
@@ -14,10 +19,23 @@ public class HelloController implements Observer<LabelState> {
     private Label secondaryDisplayLabel;
     @FXML
     private Label memoryLabel;
+    @FXML
+    private Button openMenuButton;
     private final Calculator calculator = new Calculator();
 
     public HelloController() {
         this.calculator.subscribe(this);
+    }
+
+    @FXML
+    private void initialize() {
+        ContextMenu contextMenu = new ContextMenu();
+        this.openMenuButton.setContextMenu(contextMenu);
+    }
+
+    @FXML
+    private void openMenuAction() {
+        this.openMenuButton.getContextMenu().show(openMenuButton, Side.BOTTOM, 0, 0);
     }
 
     @FXML
@@ -96,5 +114,7 @@ public class HelloController implements Observer<LabelState> {
         this.mainDisplayLabel.setText(labelState.getMainDisplayText());
         this.secondaryDisplayLabel.setText(labelState.getSecondaryDisplayText());
         this.memoryLabel.setText(labelState.getMemoryText());
+        this.openMenuButton.getContextMenu().getItems().clear();
+        this.openMenuButton.getContextMenu().getItems().addAll(labelState.getExpressionHistory().stream().map(MenuItem::new).collect(Collectors.toList()));
     }
 }

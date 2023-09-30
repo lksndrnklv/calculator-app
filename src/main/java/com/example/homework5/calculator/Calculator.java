@@ -2,8 +2,10 @@ package com.example.homework5.calculator;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 public class Calculator implements Subject<LabelState> {
 
@@ -134,7 +136,8 @@ public class Calculator implements Subject<LabelState> {
         } else {
             secondaryDisplayText = "";
         }
-        this.observers.forEach(observer -> observer.update(new LabelState(mainDisplayText, secondaryDisplayText, this.storedMemory.stripTrailingZeros().toPlainString())));
+        List<String> expressionHistory = this.expressionStack.stream().map(Expression::getSecondaryDisplayText).collect(Collectors.toList());
+        this.observers.forEach(observer -> observer.update(new LabelState(mainDisplayText, secondaryDisplayText, this.storedMemory.stripTrailingZeros().toPlainString(), expressionHistory)));
     }
 
     public void memoryStore() {
