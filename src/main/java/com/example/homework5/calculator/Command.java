@@ -16,9 +16,6 @@ public abstract class Command {
         this.firstOperand = operands.getKey();
         this.secondOperand = operands.getValue();
     }
-    public BigDecimal getFirstOperand() {
-        return firstOperand;
-    }
 
     public void setFirstOperand(BigDecimal firstOperand) {
         this.firstOperand = firstOperand;

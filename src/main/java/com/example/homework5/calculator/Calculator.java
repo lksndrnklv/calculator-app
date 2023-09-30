@@ -17,18 +17,26 @@ public class Calculator {
     }
 
     public void setNextOperation(Command command) {
-        if (this.undoRedoPointer < 0 && !this.operandBuilder.isEmpty()) {
-            command.setFirstOperand(new BigDecimal(this.operandBuilder));
+        if (this.undoRedoPointer < 0 && this.currentCommand == null) {
+            command.setFirstOperand(new BigDecimal(0));
+            if (!this.operandBuilder.isBlank()) {
+                command.setFirstOperand(new BigDecimal(this.operandBuilder));
+            }
             this.operandBuilder = "";
-        } else if (this.undoRedoPointer < 0) {
-            command.setFirstOperand(this.commandStack.get(0).getFirstOperand());
-        } else if (!this.commandStack.isEmpty()) {
+        } else if (this.currentCommand != null
+                && !this.commandStack.contains(this.currentCommand)) {
+            this.terminateOperation();
+            this.setNextOperation(command);
+        } else if (!this.commandStack.isEmpty() && this.undoRedoPointer >= 0) {
             command.setFirstOperand(this.commandStack.get(this.undoRedoPointer).firstOperand);
         }
         this.currentCommand = command;
     }
 
     public void terminateOperation() {
+        if (this.operandBuilder.isBlank()) {
+            return;
+        }
         this.currentCommand.setSecondOperand(new BigDecimal(this.operandBuilder));
         this.operandBuilder = "";
 
@@ -39,7 +47,9 @@ public class Calculator {
     }
 
     public void undo() {
+        this.operandBuilder = "";
         if (this.undoRedoPointer < 0) {
+            this.currentCommand = null;
             return;
         }
         this.currentCommand = this.commandStack.get(this.undoRedoPointer);
@@ -48,6 +58,7 @@ public class Calculator {
     }
 
     public void redo() {
+        this.operandBuilder = "";
         if (this.undoRedoPointer == this.commandStack.size() - 1) {
             return;
         }
@@ -73,7 +84,7 @@ public class Calculator {
 
     public String getDisplayLabel() {
         if (this.currentCommand == null) {
-            return this.operandBuilder;
+            return !this.operandBuilder.isBlank() ? this.operandBuilder : "0";
         }
         return this.currentCommand.getDisplayLabel().concat(this.operandBuilder);
     }
