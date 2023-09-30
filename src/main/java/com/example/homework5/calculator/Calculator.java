@@ -1,9 +1,11 @@
 package com.example.homework5.calculator;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Stack;
 
-public class Calculator {
+public class Calculator implements Subject<String> {
 
     private int undoRedoPointer = -1;
     private final Stack<Command> commandStack = new Stack<>();
@@ -12,8 +14,11 @@ public class Calculator {
 
     private String operandBuilder = "";
 
+    private Set<Observer<String>> observers = new HashSet<>();
+
     public void addDigit(int digit) {
         this.operandBuilder = this.operandBuilder.concat(String.valueOf(digit));
+        this.updateDisplayText();
     }
 
     public void setNextOperation(Command command) {
@@ -31,6 +36,7 @@ public class Calculator {
             command.setFirstOperand(this.commandStack.get(this.undoRedoPointer).firstOperand);
         }
         this.currentCommand = command;
+        this.updateDisplayText();
     }
 
     public void terminateOperation() {
@@ -44,6 +50,7 @@ public class Calculator {
         this.currentCommand.execute();
         this.commandStack.push(this.currentCommand);
         this.undoRedoPointer++;
+        this.updateDisplayText();
     }
 
     public void undo() {
@@ -55,6 +62,7 @@ public class Calculator {
         this.currentCommand = this.commandStack.get(this.undoRedoPointer);
         this.currentCommand.unexecute();
         this.undoRedoPointer--;
+        this.updateDisplayText();
     }
 
     public void redo() {
@@ -65,12 +73,14 @@ public class Calculator {
         this.undoRedoPointer++;
         this.currentCommand = this.commandStack.get(this.undoRedoPointer);
         this.currentCommand.execute();
+        this.updateDisplayText();
     }
 
     public void setDecimalSeparator() {
         if (!this.operandBuilder.contains(".")) {
             this.operandBuilder = this.operandBuilder.concat(".");
         }
+        this.updateDisplayText();
     }
 
     private void deleteElementsAfterPointer(int undoRedoPointer) {
@@ -82,10 +92,26 @@ public class Calculator {
         }
     }
 
-    public String getDisplayLabel() {
+    private void updateDisplayText() {
         if (this.currentCommand == null) {
-            return !this.operandBuilder.isBlank() ? this.operandBuilder : "0";
+            this.notifyObservers(!this.operandBuilder.isBlank() ? this.operandBuilder : "0");
+            return;
         }
-        return this.currentCommand.getDisplayLabel().concat(this.operandBuilder);
+        this.notifyObservers(this.currentCommand.getDisplayLabel().concat(this.operandBuilder));
+    }
+
+    @Override
+    public void subscribe(Observer<String> observer) {
+        this.observers.add(observer);
+    }
+
+    @Override
+    public void unsubscribe(Observer<String> observer) {
+        this.observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(String displayText) {
+        this.observers.forEach(observer -> observer.update(displayText));
     }
 }
