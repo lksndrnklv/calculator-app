@@ -80,8 +80,12 @@ public class HelloController implements Observer<LabelState> {
     }
 
     @FXML
-    public void onMemoryReset() {
-        this.calculator.onMemoryReset();
+    public void onMemoryClear() {
+        this.calculator.onMemoryClear();
+    }
+
+    @FXML
+    public void onMemoryRead() {
     }
 
     @Override

@@ -53,8 +53,8 @@
     </Label>
 
 
-    <Button maxHeight="Infinity" maxWidth="Infinity" text="MC" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2" />
-    <Button onAction="#onMemoryReset" maxHeight="Infinity" maxWidth="Infinity" text="MR" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.columnSpan="2" />
+    <Button onAction="#onMemoryClear" maxHeight="Infinity" maxWidth="Infinity" text="MC" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2" />
+    <Button onAction="#onMemoryRead" maxHeight="Infinity" maxWidth="Infinity" text="MR" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.columnSpan="2" />
     <Button onAction="#onMemoryAdd" maxHeight="Infinity" maxWidth="Infinity" text="M+" GridPane.rowIndex="1" GridPane.columnIndex="4" GridPane.columnSpan="2" />
     <Button onAction="#onMemorySubtract" maxHeight="Infinity" maxWidth="Infinity" text="M-" GridPane.rowIndex="1" GridPane.columnIndex="6" GridPane.columnSpan="2" />
     <Button onAction="#onMemoryStore" maxHeight="Infinity" maxWidth="Infinity" text="MS" GridPane.rowIndex="1" GridPane.columnIndex="8" GridPane.columnSpan="2" />
