@@ -8,7 +8,7 @@ import javafx.scene.control.*;
 
 import java.util.stream.Collectors;
 
-public class HelloController implements Observer<LabelState> {
+public class HelloController implements Observer<UIState> {
 
     @FXML
     private Label mainDisplayLabel;
@@ -18,6 +18,8 @@ public class HelloController implements Observer<LabelState> {
     private Label memoryLabel;
     @FXML
     private Button openMenuButton;
+    @FXML
+    private Button RCLBtn;
     @FXML
     private ToggleButton PROGModeBtn;
     private final Calculator calculator = new Calculator();
@@ -114,13 +116,19 @@ public class HelloController implements Observer<LabelState> {
         this.calculator.setPROGMode(this.PROGModeBtn.isSelected());
     }
 
+    @FXML
+    public void executeRecordedProgram() {
+        this.calculator.executeRecordedProgram();
+    }
+
     @Override
-    public void update(LabelState labelState) {
-        this.mainDisplayLabel.setText(labelState.getMainDisplayText());
-        this.secondaryDisplayLabel.setText(labelState.getSecondaryDisplayText());
-        this.memoryLabel.setText(labelState.getMemoryText());
+    public void update(UIState UIState) {
+        this.mainDisplayLabel.setText(UIState.getMainDisplayText());
+        this.secondaryDisplayLabel.setText(UIState.getSecondaryDisplayText());
+        this.memoryLabel.setText(UIState.getMemoryText());
         this.openMenuButton.getContextMenu().getItems().clear();
-        this.openMenuButton.getContextMenu().getItems().addAll(labelState.getExpressionHistory().stream().map(MenuItem::new).collect(Collectors.toList()));
+        this.openMenuButton.getContextMenu().getItems().addAll(UIState.getExpressionHistory().stream().map(MenuItem::new).collect(Collectors.toList()));
         this.openMenuButton.setDisable(this.openMenuButton.getContextMenu().getItems().isEmpty());
+        this.RCLBtn.setDisable(!UIState.isRCLButtonActive());
     }
 }

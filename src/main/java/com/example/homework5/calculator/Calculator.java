@@ -1,30 +1,23 @@
 package com.example.homework5.calculator;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class Calculator implements Subject<LabelState> {
+public class Calculator implements Subject<UIState> {
 
     private int undoRedoPointer = -1;
     private final Stack<Expression> expressionStack = new Stack<>();
     private final Stack<Expression> PROGExpressionStack = new Stack<>();
-
     private Expression currentExpression = null;
-
     private String operandBuilder = "";
-
-    private final Set<Observer<LabelState>> observers = new HashSet<>();
-
+    private final Set<Observer<UIState>> observers = new HashSet<>();
     private BigDecimal storedMemory = new BigDecimal(0);
     private boolean isMemoryReadState = false;
     private boolean isProgModeActive = false;
 
     public void addDigit(int digit) {
-        if (this.expressionStack.contains(this.currentExpression)) {
+        if (!this.isProgModeActive && this.expressionStack.contains(this.currentExpression)) {
             return;
         }
         if (this.operandBuilder.length() == 1 && this.operandBuilder.equals("0")) {
@@ -35,7 +28,16 @@ public class Calculator implements Subject<LabelState> {
     }
 
     public void setNextOperation(Expression expression) {
-        if (this.isMemoryReadState) {
+        if (isProgModeActive) {
+            expression.setFirstOperand(null);
+            if (!this.operandBuilder.isBlank()) {
+                PROGExpressionStack.peek().setSecondOperand(new BigDecimal(this.operandBuilder));
+                this.operandBuilder = "";
+                this.setNextOperation(expression);
+            } else {
+                this.PROGExpressionStack.push(expression);
+            }
+        } else if (this.isMemoryReadState) {
             expression.setFirstOperand(new BigDecimal(this.operandBuilder));
             this.operandBuilder = "";
             this.isMemoryReadState = false;
@@ -52,7 +54,9 @@ public class Calculator implements Subject<LabelState> {
         } else if (!this.expressionStack.isEmpty() && this.undoRedoPointer >= 0) {
             expression.setFirstOperand(this.expressionStack.get(this.undoRedoPointer).evaluateExpression());
         }
-        this.currentExpression = expression;
+        if (!isProgModeActive) {
+            this.currentExpression = expression;
+        }
         this.notifyObservers();
     }
 
@@ -60,12 +64,15 @@ public class Calculator implements Subject<LabelState> {
         if (this.operandBuilder.isBlank()) {
             return;
         }
-        this.currentExpression.setSecondOperand(new BigDecimal(this.operandBuilder));
+        if (!this.isProgModeActive) {
+            this.currentExpression.setSecondOperand(new BigDecimal(this.operandBuilder));
+            deleteElementsAfterPointer(this.undoRedoPointer);
+            this.expressionStack.push(this.currentExpression);
+            this.undoRedoPointer++;
+        } else {
+            this.PROGExpressionStack.peek().setSecondOperand(new BigDecimal(this.operandBuilder));
+        }
         this.operandBuilder = "";
-
-        deleteElementsAfterPointer(this.undoRedoPointer);
-        this.expressionStack.push(this.currentExpression);
-        this.undoRedoPointer++;
         this.notifyObservers();
     }
 
@@ -113,12 +120,12 @@ public class Calculator implements Subject<LabelState> {
     }
 
     @Override
-    public void subscribe(Observer<LabelState> observer) {
+    public void subscribe(Observer<UIState> observer) {
         this.observers.add(observer);
     }
 
     @Override
-    public void unsubscribe(Observer<LabelState> observer) {
+    public void unsubscribe(Observer<UIState> observer) {
         this.observers.remove(observer);
     }
 
@@ -127,19 +134,31 @@ public class Calculator implements Subject<LabelState> {
         final String mainDisplayText;
         if (this.isMemoryReadState) {
             mainDisplayText = this.storedMemory.stripTrailingZeros().toPlainString();
+        } else if (this.isProgModeActive) {
+            mainDisplayText = (!this.PROGExpressionStack.isEmpty() ? this.PROGExpressionStack.peek().getMainDisplayText() : "x").concat(this.operandBuilder);
         } else if (this.currentExpression != null) {
             mainDisplayText = this.currentExpression.getMainDisplayText().concat(this.operandBuilder);
         } else {
             mainDisplayText = !this.operandBuilder.isBlank() ? this.operandBuilder : "0";
         }
         final String secondaryDisplayText;
-        if (this.undoRedoPointer >= 0) {
-            secondaryDisplayText = this.expressionStack.get(this.undoRedoPointer).getSecondaryDisplayText();
+        if (!isProgModeActive) {
+            if (this.undoRedoPointer >= 0) {
+                secondaryDisplayText = this.expressionStack.get(this.undoRedoPointer).getSecondaryDisplayText();
+            } else {
+                secondaryDisplayText = "";
+            }
         } else {
-            secondaryDisplayText = "";
+            if (!this.PROGExpressionStack.isEmpty()) {
+                secondaryDisplayText = this.PROGExpressionStack.peek().getSecondaryDisplayText();
+            } else {
+                secondaryDisplayText = "";
+            }
         }
-        List<String> expressionHistory = this.expressionStack.stream().map(Expression::getSecondaryDisplayText).collect(Collectors.toList());
-        this.observers.forEach(observer -> observer.update(new LabelState(mainDisplayText, secondaryDisplayText, this.storedMemory.stripTrailingZeros().toPlainString(), expressionHistory)));
+        List<String> expressionHistory = isProgModeActive
+                ? this.PROGExpressionStack.stream().map(Expression::getSecondaryDisplayText).collect(Collectors.toList())
+                : this.expressionStack.stream().map(Expression::getSecondaryDisplayText).collect(Collectors.toList());
+        this.observers.forEach(observer -> observer.update(new UIState(mainDisplayText, secondaryDisplayText, this.storedMemory.stripTrailingZeros().toPlainString(), expressionHistory, !this.PROGExpressionStack.isEmpty() && !this.isProgModeActive)));
     }
 
     public void memoryStore() {
@@ -183,6 +202,26 @@ public class Calculator implements Subject<LabelState> {
     }
 
     public void setPROGMode(boolean isProgModeActive) {
+        this.isMemoryReadState = false;
         this.isProgModeActive = isProgModeActive;
+        if (this.isProgModeActive) {
+            this.PROGExpressionStack.clear();
+            this.operandBuilder = "";
+        }
+        this.notifyObservers();
+    }
+
+    public void executeRecordedProgram() {
+        BigDecimal bigDecimal = this.undoRedoPointer >= 0 ? this.expressionStack.get(this.undoRedoPointer).evaluateExpression() : !this.operandBuilder.isBlank() ? new BigDecimal(this.operandBuilder) :  new BigDecimal(0);
+        deleteElementsAfterPointer(this.undoRedoPointer);
+        for (Object o : this.PROGExpressionStack.toArray()) {
+            Expression expression = (Expression) o;
+            expression.setFirstOperand(bigDecimal);
+            this.currentExpression = expression;
+            this.undoRedoPointer++;
+            this.expressionStack.push(expression);
+            bigDecimal = expression.evaluateExpression();
+            this.notifyObservers();
+        }
     }
 }

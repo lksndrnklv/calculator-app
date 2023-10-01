@@ -45,13 +45,15 @@ public class Expression {
 
     public String getSecondaryDisplayText() {
         StringBuilder sb = new StringBuilder();
-        sb.append(this.firstOperand.stripTrailingZeros().toPlainString());
+        sb.append(this.firstOperand == null ? "x" : this.firstOperand.stripTrailingZeros().toPlainString());
         if (this.operation != null) {
             sb.append(this.operation.getOperationSymbol());
             if (this.secondOperand != null) {
                 sb.append(this.secondOperand.stripTrailingZeros().toPlainString());
-                sb.append("=");
-                sb.append(this.evaluateExpression());
+                if (this.firstOperand != null) {
+                    sb.append("=");
+                    sb.append(this.evaluateExpression());
+                }
             }
         }
         return sb.toString();
@@ -59,11 +61,15 @@ public class Expression {
 
     public String getMainDisplayText() {
         StringBuilder sb = new StringBuilder();
+        sb.append(this.firstOperand == null ? "x" : this.firstOperand.stripTrailingZeros().toPlainString());
         if (this.operation != null) {
-        sb.append(this.firstOperand.stripTrailingZeros().toPlainString());
             sb.append(this.operation.getOperationSymbol());
             if (this.secondOperand != null) {
-                return this.evaluateExpression().stripTrailingZeros().toPlainString();
+                if (this.firstOperand == null) {
+                    sb.append(this.secondOperand.stripTrailingZeros().toPlainString());
+                } else {
+                    return this.evaluateExpression().stripTrailingZeros().toPlainString();
+                }
             }
         }
         return sb.toString();
