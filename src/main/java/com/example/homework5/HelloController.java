@@ -1,6 +1,10 @@
 package com.example.homework5;
 
-import com.example.homework5.calculator.*;
+import com.example.homework5.calculator.Calculator;
+import com.example.homework5.calculator.Observer;
+import com.example.homework5.calculator.Operation;
+import com.example.homework5.calculator.UIState;
+import com.example.homework5.calculator.commands.*;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
@@ -10,6 +14,15 @@ import java.util.stream.Collectors;
 
 public class HelloController implements Observer<UIState> {
 
+    private final Calculator calculator = new Calculator();
+    @FXML
+    public Button decimalSeparatorBtn;
+    @FXML
+    public Button redoBtn;
+    @FXML
+    public Button undoBtn;
+    @FXML
+    public Button equalsBtn;
     @FXML
     private Label mainDisplayLabel;
     @FXML
@@ -22,7 +35,6 @@ public class HelloController implements Observer<UIState> {
     private Button RCLBtn;
     @FXML
     private ToggleButton PROGModeBtn;
-    private final Calculator calculator = new Calculator();
 
     public HelloController() {
         this.calculator.subscribe(this);
@@ -43,37 +55,37 @@ public class HelloController implements Observer<UIState> {
     @FXML
     public void onAddDigit(ActionEvent event) {
         Button button = (Button) event.getSource();
-        this.calculator.addDigit(Integer.parseInt(button.getText()));
+        this.calculator.executeCommand(new AddDigitCommand(Integer.parseInt(button.getText())));
     }
 
     @FXML
     public void onSetDecimalSeparator() {
-        this.calculator.setDecimalSeparator();
+        this.calculator.executeCommand(new AddDecimalSeparatorCommand());
     }
 
     @FXML
     public void onAdd() {
-        this.calculator.setNextOperation(new Expression(Operation.ADDITION));
+        this.calculator.executeCommand(new SetOperationCommand(Operation.ADDITION));
     }
 
     @FXML
     public void onSubtract() {
-        this.calculator.setNextOperation(new Expression(Operation.SUBTRACTION));
+        this.calculator.executeCommand(new SetOperationCommand(Operation.SUBTRACTION));
     }
 
     @FXML
     public void onMultiply() {
-        this.calculator.setNextOperation(new Expression(Operation.MULTIPLICATION));
+        this.calculator.executeCommand(new SetOperationCommand(Operation.MULTIPLICATION));
     }
 
     @FXML
     public void onDivide() {
-        this.calculator.setNextOperation(new Expression(Operation.DIVISION));
+        this.calculator.executeCommand(new SetOperationCommand(Operation.DIVISION));
     }
 
     @FXML
     public void onEquals() {
-        this.calculator.terminateExpression();
+        this.calculator.executeCommand(new TerminateExpressionCommand());
     }
 
     @FXML
@@ -88,47 +100,51 @@ public class HelloController implements Observer<UIState> {
 
     @FXML
     public void onMemoryStore() {
-        this.calculator.memoryStore();
+        this.calculator.executeCommand(new MemoryStoreCommand());
     }
 
     @FXML
     public void onMemoryAdd() {
-        this.calculator.memoryAdd();
+        this.calculator.executeCommand(new MemoryAddCommand());
     }
 
     @FXML
     public void onMemorySubtract() {
-        this.calculator.memorySubtract();
+        this.calculator.executeCommand(new MemorySubtractCommand());
     }
 
     @FXML
     public void onMemoryClear() {
-        this.calculator.memoryClear();
+        this.calculator.executeCommand(new MemoryClearCommand());
     }
 
     @FXML
     public void onMemoryRead() {
-        this.calculator.memoryRead();
+        this.calculator.executeCommand(new MemoryReadCommand());
     }
 
     @FXML
     public void togglePROGMode() {
-        this.calculator.setPROGMode(this.PROGModeBtn.isSelected());
+        this.calculator.executeCommand(new TogglePROGModeCommand());
     }
 
     @FXML
     public void executeRecordedProgram() {
-        this.calculator.executeRecordedProgram();
+        this.calculator.executeCommand(new ExecuteRecordedProgram());
     }
 
     @Override
-    public void update(UIState UIState) {
-        this.mainDisplayLabel.setText(UIState.getMainDisplayText());
-        this.secondaryDisplayLabel.setText(UIState.getSecondaryDisplayText());
-        this.memoryLabel.setText(UIState.getMemoryText());
+    public void update(UIState uiState) {
+        this.mainDisplayLabel.setText(uiState.getMainDisplayText());
+        this.secondaryDisplayLabel.setText(uiState.getSecondaryDisplayText());
+        this.memoryLabel.setText(uiState.getMemoryText());
         this.openMenuButton.getContextMenu().getItems().clear();
-        this.openMenuButton.getContextMenu().getItems().addAll(UIState.getExpressionHistory().stream().map(MenuItem::new).collect(Collectors.toList()));
+        this.openMenuButton.getContextMenu().getItems().addAll(uiState.getExpressionHistory().stream().map(MenuItem::new).collect(Collectors.toList()));
         this.openMenuButton.setDisable(this.openMenuButton.getContextMenu().getItems().isEmpty());
-        this.RCLBtn.setDisable(!UIState.isRCLButtonActive());
+        this.RCLBtn.setDisable(!uiState.isRCLButtonActive());
+        this.decimalSeparatorBtn.setDisable(!uiState.isDecimalSeparatorButtonActive());
+        this.undoBtn.setDisable(!uiState.isUndoButtonActive());
+        this.redoBtn.setDisable(!uiState.isRedoButtonActive());
+        this.equalsBtn.setDisable(!uiState.isEqualsButtonActive());
     }
 }

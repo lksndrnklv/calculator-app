@@ -1,122 +1,44 @@
 package com.example.homework5.calculator;
 
-import java.math.BigDecimal;
-import java.util.*;
+import com.example.homework5.calculator.commands.Command;
+import com.example.homework5.calculator.commands.SetOperationCommand;
+import com.example.homework5.calculator.commands.TerminateExpressionCommand;
+import com.example.homework5.calculator.state.CalculatorState;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 public class Calculator implements Subject<UIState> {
-
-    private int undoRedoPointer = -1;
-    private final Stack<Expression> expressionStack = new Stack<>();
-    private final Stack<Expression> PROGExpressionStack = new Stack<>();
-    private Expression currentExpression = null;
-    private String operandBuilder = "";
+    private final Stack<Command> commandStack = new Stack<>();
     private final Set<Observer<UIState>> observers = new HashSet<>();
-    private BigDecimal storedMemory = new BigDecimal(0);
-    private boolean isMemoryReadState = false;
-    private boolean isProgModeActive = false;
+    private CalculatorState currentState = new CalculatorState();
+    private int undoRedoPointer = -1;
 
-    public void addDigit(int digit) {
-        if (!this.isProgModeActive && this.expressionStack.contains(this.currentExpression)) {
-            return;
+    public void executeCommand(Command command) {
+        if ((command instanceof SetOperationCommand)
+                && this.currentState.isNotTerminated()) {
+            executeCommand(new TerminateExpressionCommand());
         }
-        if (this.operandBuilder.length() == 1 && this.operandBuilder.equals("0")) {
-            return;
-        }
-        this.operandBuilder = this.operandBuilder.concat(String.valueOf(digit));
-        this.notifyObservers();
-    }
-
-    public void setNextOperation(Expression expression) {
-        if (isProgModeActive) {
-            expression.setFirstOperand(null);
-            if (!this.operandBuilder.isBlank()) {
-                PROGExpressionStack.peek().setSecondOperand(new BigDecimal(this.operandBuilder));
-                this.operandBuilder = "";
-                this.setNextOperation(expression);
-            } else {
-                this.PROGExpressionStack.push(expression);
-            }
-        } else if (this.isMemoryReadState) {
-            expression.setFirstOperand(new BigDecimal(this.operandBuilder));
-            this.operandBuilder = "";
-            this.isMemoryReadState = false;
-        } else if (this.undoRedoPointer < 0 && this.currentExpression == null) {
-            expression.setFirstOperand(new BigDecimal(0));
-            if (!this.operandBuilder.isBlank()) {
-                expression.setFirstOperand(new BigDecimal(this.operandBuilder));
-            }
-            this.operandBuilder = "";
-        } else if (this.currentExpression != null
-                && !this.expressionStack.contains(this.currentExpression)) {
-            this.terminateExpression();
-            this.setNextOperation(expression);
-        } else if (!this.expressionStack.isEmpty() && this.undoRedoPointer >= 0) {
-            expression.setFirstOperand(this.expressionStack.get(this.undoRedoPointer).evaluateExpression());
-        }
-        if (!isProgModeActive) {
-            this.currentExpression = expression;
-        }
-        this.notifyObservers();
-    }
-
-    public void terminateExpression() {
-        if (this.operandBuilder.isBlank()) {
-            return;
-        }
-        if (!this.isProgModeActive) {
-            this.currentExpression.setSecondOperand(new BigDecimal(this.operandBuilder));
-            deleteElementsAfterPointer(this.undoRedoPointer);
-            this.expressionStack.push(this.currentExpression);
-            this.undoRedoPointer++;
-        } else {
-            this.PROGExpressionStack.peek().setSecondOperand(new BigDecimal(this.operandBuilder));
-        }
-        this.operandBuilder = "";
-        this.notifyObservers();
+        command.setMemento(new CalculatorMemento(this.currentState));
+        this.currentState = command.execute();
+        deleteElementsAfterPointer(this.undoRedoPointer);
+        commandStack.push(command);
+        this.undoRedoPointer++;
+        notifyObservers();
     }
 
     public void undo() {
-        this.operandBuilder = "";
-        if (this.isMemoryReadState) {
-            this.isMemoryReadState = false;
-            this.operandBuilder = "";
-        } else if (this.undoRedoPointer <= 0) {
-            this.currentExpression = null;
-            this.undoRedoPointer = -1;
-        } else {
-            this.undoRedoPointer--;
-            this.currentExpression = this.expressionStack.get(this.undoRedoPointer);
-        }
+        this.currentState = this.commandStack.get(this.undoRedoPointer).getPreviousState();
+        this.undoRedoPointer--;
         this.notifyObservers();
     }
 
     public void redo() {
-        this.operandBuilder = "";
-        if (this.undoRedoPointer == this.expressionStack.size() - 1) {
-            return;
-        }
         this.undoRedoPointer++;
-        this.currentExpression = this.expressionStack.get(this.undoRedoPointer);
+        this.currentState = this.commandStack.get(this.undoRedoPointer).execute();
         this.notifyObservers();
-    }
-
-    public void setDecimalSeparator() {
-        if (!this.operandBuilder.contains(".")) {
-            this.operandBuilder = this.operandBuilder.concat(".");
-        } else if(this.operandBuilder.isBlank()) {
-            this.operandBuilder = this.operandBuilder.concat("0.");
-        }
-        this.notifyObservers();
-    }
-
-    private void deleteElementsAfterPointer(int undoRedoPointer) {
-        if (this.expressionStack.isEmpty()) {
-            return;
-        }
-        if (this.expressionStack.size() > undoRedoPointer + 1) {
-            this.expressionStack.subList(undoRedoPointer + 1, this.expressionStack.size()).clear();
-        }
     }
 
     @Override
@@ -131,97 +53,19 @@ public class Calculator implements Subject<UIState> {
 
     @Override
     public void notifyObservers() {
-        final String mainDisplayText;
-        if (this.isMemoryReadState) {
-            mainDisplayText = this.storedMemory.stripTrailingZeros().toPlainString();
-        } else if (this.isProgModeActive) {
-            mainDisplayText = (!this.PROGExpressionStack.isEmpty() ? this.PROGExpressionStack.peek().getMainDisplayText() : "x").concat(this.operandBuilder);
-        } else if (this.currentExpression != null) {
-            mainDisplayText = this.currentExpression.getMainDisplayText().concat(this.operandBuilder);
-        } else {
-            mainDisplayText = !this.operandBuilder.isBlank() ? this.operandBuilder : "0";
+        UIState uiState = this.currentState.getUIState();
+        uiState.setUndoButtonActive(this.undoRedoPointer >= 0);
+        uiState.setRedoButtonActive(this.undoRedoPointer < this.commandStack.size() - 1);
+        uiState.setExpressionHistory(this.commandStack.stream().map(Command::getCommandHistoryLine).collect(Collectors.toList()));
+        this.observers.forEach(observer -> observer.update(uiState));
+    }
+
+    private void deleteElementsAfterPointer(int undoRedoPointer) {
+        if (this.commandStack.isEmpty()) {
+            return;
         }
-        final String secondaryDisplayText;
-        if (!isProgModeActive) {
-            if (this.undoRedoPointer >= 0) {
-                secondaryDisplayText = this.expressionStack.get(this.undoRedoPointer).getSecondaryDisplayText();
-            } else {
-                secondaryDisplayText = "";
-            }
-        } else {
-            if (!this.PROGExpressionStack.isEmpty()) {
-                secondaryDisplayText = this.PROGExpressionStack.peek().getSecondaryDisplayText();
-            } else {
-                secondaryDisplayText = "";
-            }
-        }
-        List<String> expressionHistory = isProgModeActive
-                ? this.PROGExpressionStack.stream().map(Expression::getSecondaryDisplayText).collect(Collectors.toList())
-                : this.expressionStack.stream().map(Expression::getSecondaryDisplayText).collect(Collectors.toList());
-        this.observers.forEach(observer -> observer.update(new UIState(mainDisplayText, secondaryDisplayText, this.storedMemory.stripTrailingZeros().toPlainString(), expressionHistory, !this.PROGExpressionStack.isEmpty() && !this.isProgModeActive)));
-    }
-
-    public void memoryStore() {
-        if (this.currentExpression != null) {
-            this.storedMemory = this.currentExpression.evaluateExpression();
-        } else if (!this.operandBuilder.isBlank()) {
-            this.storedMemory = new BigDecimal(this.operandBuilder);
-        } else {
-            this.storedMemory = new BigDecimal(0);
-        }
-        this.notifyObservers();
-    }
-
-    public void memoryAdd() {
-        if (this.currentExpression != null) {
-            this.storedMemory = this.storedMemory.add(this.currentExpression.evaluateExpression());
-        } else if (!this.operandBuilder.isBlank()) {
-            this.storedMemory = this.storedMemory.add(new BigDecimal(this.operandBuilder));
-        }
-        this.notifyObservers();
-    }
-
-    public void memorySubtract() {
-        if (this.currentExpression != null) {
-            this.storedMemory = this.storedMemory.subtract(this.currentExpression.evaluateExpression());
-        } else if (!this.operandBuilder.isBlank()) {
-            this.storedMemory = this.storedMemory.subtract(new BigDecimal(this.operandBuilder));
-        }
-        this.notifyObservers();
-    }
-
-    public void memoryClear() {
-        this.storedMemory = new BigDecimal(0);
-        this.notifyObservers();
-    }
-
-    public void memoryRead() {
-        this.isMemoryReadState = true;
-        this.operandBuilder = this.storedMemory.stripTrailingZeros().toPlainString();
-        this.notifyObservers();
-    }
-
-    public void setPROGMode(boolean isProgModeActive) {
-        this.isMemoryReadState = false;
-        this.isProgModeActive = isProgModeActive;
-        if (this.isProgModeActive) {
-            this.PROGExpressionStack.clear();
-            this.operandBuilder = "";
-        }
-        this.notifyObservers();
-    }
-
-    public void executeRecordedProgram() {
-        BigDecimal bigDecimal = this.undoRedoPointer >= 0 ? this.expressionStack.get(this.undoRedoPointer).evaluateExpression() : !this.operandBuilder.isBlank() ? new BigDecimal(this.operandBuilder) :  new BigDecimal(0);
-        deleteElementsAfterPointer(this.undoRedoPointer);
-        for (Object o : this.PROGExpressionStack.toArray()) {
-            Expression expression = (Expression) o;
-            expression.setFirstOperand(bigDecimal);
-            this.currentExpression = expression;
-            this.undoRedoPointer++;
-            this.expressionStack.push(expression);
-            bigDecimal = expression.evaluateExpression();
-            this.notifyObservers();
+        if (this.commandStack.size() > undoRedoPointer + 1) {
+            this.commandStack.subList(undoRedoPointer + 1, this.commandStack.size()).clear();
         }
     }
 }

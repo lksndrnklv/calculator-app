@@ -2,34 +2,38 @@ package com.example.homework5.calculator;
 
 import java.math.BigDecimal;
 
-public class Expression {
+public class Expression implements Cloneable {
     private BigDecimal firstOperand = new BigDecimal(0);
-
     private Operation operation;
     private BigDecimal secondOperand;
 
-    public Expression(Operation operation) {
+    public Expression() {
+    }
+
+    public Expression(BigDecimal firstOperand, Operation operation, BigDecimal secondOperand) {
+        this.firstOperand = firstOperand;
         this.operation = operation;
+        this.secondOperand = secondOperand;
     }
 
     public BigDecimal getFirstOperand() {
         return firstOperand;
     }
 
-    public Operation getOperation() {
-        return operation;
-    }
-
-    public BigDecimal getSecondOperand() {
-        return secondOperand;
-    }
-
     public void setFirstOperand(BigDecimal firstOperand) {
         this.firstOperand = firstOperand;
     }
 
+    public Operation getOperation() {
+        return operation;
+    }
+
     public void setOperation(Operation operation) {
         this.operation = operation;
+    }
+
+    public BigDecimal getSecondOperand() {
+        return secondOperand;
     }
 
     public void setSecondOperand(BigDecimal secondOperand) {
@@ -73,5 +77,10 @@ public class Expression {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public Expression clone() {
+        return new Expression(this.firstOperand, this.operation, this.secondOperand);
     }
 }
